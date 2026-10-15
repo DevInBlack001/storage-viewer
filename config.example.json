@@ -1,0 +1,16 @@
+{
+  "top_n": 10,
+  "max_seconds": 120,
+  "warn_percent": 75,
+  "critical_percent": 90,
+  "cache_max_age": 600,
+  "age_buckets_days": [7, 30, 90, 365],
+  "rules": [
+    { "path": "$XDG_DOWNLOAD_DIR/installers", "tier": "safe", "reason": "Installers I can download again" },
+    { "path": "projects/*/data", "tier": "keep", "reason": "Research data" }
+  ],
+  "expand": ["projects"],
+  "artifacts": {
+    ".terraform": { "tier": "safe", "reason": "Provider plugins, restored by terraform init" }
+  }
+}

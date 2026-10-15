@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Storage Viewer
+GenericName=Disk Usage
+Comment=Disk usage and what in your home directory is safe to remove
+Exec=@BIN@
+Icon=storage-viewer
+Terminal=true
+Categories=System;Monitor;ConsoleOnly;
+Keywords=disk;storage;space;cleanup;usage;

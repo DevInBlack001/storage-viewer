@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "storage-viewer"
+version = "1.0.0"
+description = "Terminal UI showing disk usage and the biggest items in your home directory, ranked by how safe they are to remove"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [{ name = "DevInBlack001" }]
+keywords = ["disk", "storage", "tui", "cleanup", "du"]
+classifiers = [
+  "Environment :: Console :: Curses",
+  "Operating System :: POSIX :: Linux",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Filesystems",
+]
+
+[project.urls]
+Homepage = "https://github.com/DevInBlack001/storage-viewer"
+
+[project.scripts]
+storage-viewer = "storage_viewer.cli:main"
+
+[tool.setuptools]
+packages = ["storage_viewer"]

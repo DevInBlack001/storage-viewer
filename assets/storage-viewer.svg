@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>Storage Viewer</title>
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#808080" stroke-opacity="0.25" stroke-width="22"/>
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#5b8def" stroke-width="22"
+          stroke-dasharray="125 276" transform="rotate(-90 64 64)"/>
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#d96bb5" stroke-width="22"
+          stroke-dasharray="55 276" stroke-dashoffset="-125" transform="rotate(-90 64 64)"/>
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#e0b44c" stroke-width="22"
+          stroke-dasharray="30 276" stroke-dashoffset="-180" transform="rotate(-90 64 64)"/>
+</svg>
