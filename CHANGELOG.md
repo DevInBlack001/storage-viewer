@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.1] - 2026-10-15
+
+### Fixed
+
+- Omarchy plugin failed to load with "IpcHandler is not a type": `Panel.qml` was missing `import Quickshell.Io`, so the bar widget never appeared
+
+### Changed
+
+- The installer now reminds Omarchy users to run `omarchy-restart-shell` after installing or updating, because the shell caches compiled plugin QML
+
 ## [1.0.0] - 2026-10-15
 
 ### Added

@@ -47,7 +47,7 @@ The repository root is an Omarchy plugin, so you can also use Omarchy's own inst
 omarchy plugin add https://github.com/DevInBlack001/storage-viewer.git --enable
 ```
 
-If you used `./install.sh` instead, enable it with `omarchy plugin enable devinblack001.storage-viewer`. Click the drive icon in the bar to open the panel.
+If you used `./install.sh` instead, enable it with `omarchy plugin enable devinblack001.storage-viewer`. The shell caches plugin code, so run `omarchy-restart-shell` after installing or updating. Click the drive icon in the bar to open the panel.
 
 ### Quickshell (non-Omarchy)
 

@@ -134,6 +134,9 @@ fi
 
 say "Done."
 case ":$PATH:" in *":$BIN_DIR:"*) ;; *) warn "$BIN_DIR is not on your PATH; add it to run '$APP_NAME' directly" ;; esac
-[ "$OMARCHY" = yes ] && info "Omarchy: enable 'Storage Viewer' as a bar widget (omarchy-shell plugin settings)."
+if [ "$OMARCHY" = yes ]; then
+  info "Omarchy: run 'omarchy plugin enable devinblack001.storage-viewer' (first install only),"
+  info "         then 'omarchy-restart-shell' so the shell reloads the plugin."
+fi
 [ "$QS" = yes ] && info "Quickshell: run 'qs -c $APP_NAME' (toggle with: qs -c $APP_NAME ipc call $APP_NAME toggle)."
 info "Terminal: run '$APP_NAME'."

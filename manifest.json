@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "devinblack001.storage-viewer",
   "name": "Storage Viewer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "DevInBlack001",
   "license": "MIT",
   "description": "Disk usage donut, size-by-age graphs, and the biggest items in your home directory ranked by how safe they are to remove. Read-only.",
