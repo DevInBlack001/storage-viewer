@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-10-16
+
+### Changed
+
+- Shell panels (Omarchy and Quickshell) are now a small card: a ring and the free space on the home mount, bars for `/` and the home mount, and the top 5 easy wins
+- The JSON report has a `primary` list (the filesystems holding `/` and your home), resolved from the mount table
+- The TUI size-versus-age plot has dotted gridlines, labelled ticks on both axes, and a colored point with its rank for every item
+
 ## [1.0.1] - 2026-10-15
 
 ### Fixed

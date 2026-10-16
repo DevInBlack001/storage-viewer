@@ -91,8 +91,8 @@ ShellRoot {
     visible: shell.open
     anchors { top: !shell.atBottom; bottom: shell.atBottom; right: true }
     margins { top: 54; bottom: 54; right: 8 }
-    implicitWidth: 480
-    implicitHeight: Math.min(flick.contentHeight + 40, (screen ? screen.height : 900) - 120)
+    implicitWidth: 300
+    implicitHeight: Math.min(flick.contentHeight + 36, (screen ? screen.height : 900) - 120)
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "storage-viewer-panel"
@@ -108,7 +108,7 @@ ShellRoot {
       Flickable {
         id: flick
         anchors.fill: parent
-        anchors.margins: 20
+        anchors.margins: 18
         contentWidth: width
         contentHeight: content.implicitHeight
         clip: true

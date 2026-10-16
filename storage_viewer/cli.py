@@ -65,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
             report.write_cache(result_payload, root)
 
     payload = {"version": __version__}
-    payload.update(report.disks_payload())
+    payload.update(report.disks_payload(root))
     payload["home"] = result_payload
 
     if args.json:

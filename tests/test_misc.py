@@ -36,6 +36,32 @@ class DiskTests(unittest.TestCase):
         self.assertEqual(found[0].mount, "/")
 
 
+class PrimaryDiskTests(unittest.TestCase):
+    def _disks(self):
+        return [
+            disks.Disk("/dev/a", "/", "btrfs", 100, 40, 60),
+            disks.Disk("/dev/a", "/home", "btrfs", 100, 40, 60),
+            disks.Disk("/dev/b", "/boot", "vfat", 10, 1, 9),
+        ]
+
+    def test_deepest_mount_wins(self):
+        self.assertEqual(disks._mount_for("/home/someone/x", self._disks()).mount, "/home")
+        self.assertEqual(disks._mount_for("/etc", self._disks()).mount, "/")
+
+    def test_prefix_is_whole_segment(self):
+        extra = self._disks() + [disks.Disk("/dev/c", "/hom", "ext4", 5, 1, 4)]
+        self.assertEqual(disks._mount_for("/home/x", extra).mount, "/home")
+
+    def test_primary_lists_root_and_home_once(self):
+        found = disks.primary_disks(os.path.expanduser("~"))
+        self.assertTrue(1 <= len(found) <= 2)
+        self.assertEqual(found[0].mount, "/")
+        self.assertEqual(len({d.mount for d in found}), len(found))
+
+    def test_report_includes_primary(self):
+        self.assertIn("primary", report.disks_payload(os.path.expanduser("~")))
+
+
 class ConfigTests(unittest.TestCase):
     def _load(self, text, mode="w"):
         d = tempfile.TemporaryDirectory()

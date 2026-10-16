@@ -2,7 +2,7 @@
 
 A terminal UI that shows how full your disks are, draws where the space went, and lists the 10 biggest items in your home directory **ordered by how safe they are to delete**. It also ships as a bar plugin for [Omarchy](https://omarchy.org/) and as a standalone [Quickshell](https://quickshell.org/) panel.
 
-![Panel preview](assets/preview.png)
+<p align="center"><img src="assets/preview.png" alt="Compact panel: free space ring, bars for / and /home, five easy wins" width="300"></p>
 
 Read-only by design: it never deletes anything, makes no network calls, and runs no subprocesses.
 
@@ -13,11 +13,11 @@ Read-only by design: it never deletes anything, makes no network calls, and runs
   - **SAFE**: regenerates on its own (caches, trash, build output)
   - **REVIEW**: probably removable, but only you can judge (downloads, VMs, games)
   - **KEEP**: personal data, settings, keys, or source code
-- Size by last modified: bytes per age bucket, and a size-versus-age scatter plot of the listed items, so old and big stands out
+- Size by last modified: bytes per age bucket, and a gridded size-versus-age plot where each listed item is a point labelled with its rank, so old and big stands out
 - Build output found anywhere under home (`target/`, `node_modules/`, `__pycache__/`, `build/`, `dist/`, virtualenvs) is listed on its own and not double counted
 - Colors come from your terminal's own palette, so it follows your theme (on Omarchy that means the active theme)
 - Runs on any Linux distro: Python 3.9+ standard library only, nothing to `pip install`
-- Optional Omarchy bar plugin and standalone Quickshell panel (floating icon + popup)
+- Optional Omarchy bar plugin and standalone Quickshell panel. The panel is a small card: free space on your home mount, bars for `/` and your home mount, and the top 5 easy wins. The TUI has the full detail.
 
 ## Install
 

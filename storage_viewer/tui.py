@@ -298,38 +298,71 @@ def draw_age_histogram(win, y: int, x: int, width: int, res: ScanResult, g: Glyp
     return len(labels)
 
 
+_SIZE_TICKS = [2 ** 20 * 4 ** i for i in range(0, 10)]  # 1M, 4M, 16M, ... 64G, 256G
+_AGE_TICKS = [1, 7, 30, 90, 365, 1825]
+
+
 def draw_scatter(win, y: int, x: int, width: int, height: int, items, selected: int,
                  now: float, g: Glyphs) -> None:
-    """Items placed by last-modified age (x, log) and size (y, log)."""
+    """Items placed by last-modified age (x, log) and size (y, log).
+
+    Dotted gridlines mark the tick values, each item is a colored point followed
+    by its rank in the list, and both axes are labelled.
+    """
     pts = [(i, it) for i, it in enumerate(items) if it.mtime > 0 and it.size > 0]
     label_w = 6
-    pw, ph = width - label_w - 2, height - 2
-    if pw < 16 or ph < 3 or not pts:
-        _put(win, y, x, "not enough data for the plot", _cp(P_DIM))
+    pw, ph = width - label_w - 3, height - 3
+    dim = _cp(P_DIM)
+    if pw < 20 or ph < 3 or not pts:
+        _put(win, y, x, "not enough data for the plot", dim)
         return
     ages = [max(1.0, (now - it.mtime) / DAY) for _, it in pts]
     sizes = [math.log10(it.size) for _, it in pts]
-    x_hi = math.log10(max(max(ages), 365.0) * 1.15)
-    y_lo, y_hi = min(sizes) - 0.15, max(sizes) + 0.15
+    x_hi = math.log10(max(max(ages), 365.0) * 1.2)
+    y_lo, y_hi = min(sizes) - 0.25, max(sizes) + 0.25
+    ox = x + label_w + 1                         # first plot column
 
-    for r in range(ph):
-        _put(win, y + r, x + label_w, g.vline, _cp(P_DIM))
-    _put(win, y + ph, x + label_w, g.corner + g.hline * (pw + 1), _cp(P_DIM))
-    _put(win, y, x, f"{human_size(10 ** y_hi):>5}", _cp(P_DIM))
-    _put(win, y + ph - 1, x, f"{human_size(10 ** y_lo):>5}", _cp(P_DIM))
-    for days in (1, 30, 365, 1825):
+    def col(days: float) -> int:
+        return ox + 1 + int(min(1.0, math.log10(max(1.0, days)) / x_hi) * (pw - 3))
+
+    def row(log_size: float) -> int:
+        frac = (log_size - y_lo) / (y_hi - y_lo)
+        return y + (ph - 1) - int(max(0.0, min(1.0, frac)) * (ph - 1))
+
+    dot = "·" if g.utf else "."
+    # horizontal gridlines + size labels
+    for tick in _SIZE_TICKS:
+        lg = math.log10(tick)
+        if not (y_lo <= lg <= y_hi):
+            continue
+        ry = row(lg)
+        _put(win, ry, x, f"{human_size(tick):>{label_w - 1}}", dim)
+        _put(win, ry, ox + 1, dot * (pw - 1), dim)
+    # vertical gridlines + age labels
+    for days in _AGE_TICKS:
         if math.log10(days) > x_hi:
             continue
-        cx = x + label_w + 2 + int(math.log10(days) / x_hi * (pw - 1))
-        _put(win, y + ph + 1, cx, fmt_days(days), _cp(P_DIM))
+        cx = col(days)
+        for r in range(ph):
+            _put(win, y + r, cx, g.vline if g.utf else "|", dim)
+        _put(win, y + ph + 1, max(ox, cx - 1), fmt_days(days), dim)
+    # axes
+    for r in range(ph):
+        _put(win, y + r, ox, g.vline, dim)
+    _put(win, y + ph, ox, g.corner + g.hline * (pw - 1), dim)
+    _put(win, y - 1, x, "y: size", dim | curses.A_BOLD)
+    _put(win, y - 1, x + width - 19, "x: last modified", dim | curses.A_BOLD)
 
-    for (idx, item), age, lg in sorted(zip(pts, ages, sizes), key=lambda t: t[0][0] == selected):
-        cx = x + label_w + 2 + int(math.log10(age) / x_hi * (pw - 1))
-        cy = y + (ph - 1) - int((lg - y_lo) / (y_hi - y_lo) * (ph - 1))
+    # points last, so they sit on top of the grid; the selected one on top of all
+    order = sorted(zip(pts, ages, sizes), key=lambda t: t[0][0] == selected)
+    for (idx, item), age, lg in order:
+        cx, cy = col(age), row(lg)
         attr = _cp(P_TIER[item.tier]) | curses.A_BOLD
-        if idx == selected:
+        sel = idx == selected
+        if sel:
             attr |= curses.A_REVERSE
-        _put(win, cy, cx, str(idx + 1), attr)
+        _put(win, cy, cx, ("●" if g.utf else "o"), attr)
+        _put(win, cy, cx + 1, str(idx + 1), (curses.A_BOLD | (curses.A_REVERSE if sel else 0)))
 
 
 # ------------------------------------------------------------------- draw
@@ -462,14 +495,15 @@ def draw(win, st: State, g: Glyphs, tick: int) -> None:
     if show_age and res is not None and res.age_bytes:
         _put(win, y, margin, "SIZE BY LAST MODIFIED", head)
         if show_scatter:
-            _put(win, y, w // 2, "ITEMS: SIZE vs AGE  (numbers match the list)", head)
+            _put(win, y, w // 2, "BIGGEST ITEMS: SIZE vs AGE", head)
+            _put(win, y, w // 2 + 28, "(numbers match the list below)", _cp(P_DIM))
         y += 2
         hist_w = (w // 2 - margin - 3) if show_scatter else inner_w
         used = draw_age_histogram(win, y, margin, hist_w, res, g)
         if show_scatter:
-            draw_scatter(win, y, w // 2, w - w // 2 - margin, max(used + 2, 7), res.items, st.selected,
+            draw_scatter(win, y, w // 2, w - w // 2 - margin, max(used + 3, 8), res.items, st.selected,
                          time.time(), g)
-        y += max(used, 7 if show_scatter else 0) + 1
+        y += max(used, 8 if show_scatter else 0) + 1
 
     # ---- ranked list -----------------------------------------------------
     _put(win, y, margin, "TOP ITEMS", head)

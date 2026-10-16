@@ -12,6 +12,7 @@ Canvas {
   property color subColor: "gray"
   property string fontFamily: ""
   property real gap: 0.02  // radians left between segments
+  property bool rounded: false  // round caps on every segment (a softer look)
 
   implicitWidth: 96
   implicitHeight: 96
@@ -30,7 +31,8 @@ Canvas {
     var cx = width / 2, cy = height / 2
     var start = -Math.PI / 2
     ctx.lineWidth = lw
-    ctx.lineCap = "butt"
+    ctx.lineCap = root.rounded ? "round" : "butt"
+    var capPad = root.rounded ? (lw / 2) / r : 0   // a round cap overshoots by half the ring width
 
     ctx.strokeStyle = root.trackColor
     ctx.beginPath()
@@ -44,8 +46,10 @@ Canvas {
     for (var j = 0; j < segments.length; j++) {
       var sweep = Math.max(0, segments[j].fraction) / total * Math.PI * 2
       if (sweep <= 0.001) continue
-      var a0 = angle + (sweep > root.gap * 3 ? root.gap / 2 : 0)
-      var a1 = angle + sweep - (sweep > root.gap * 3 ? root.gap / 2 : 0)
+      var pad = (sweep > root.gap * 3 ? root.gap / 2 : 0) + capPad
+      var a0 = angle + pad
+      var a1 = angle + sweep - pad
+      if (a1 <= a0) { angle += sweep; continue }
       ctx.strokeStyle = segments[j].color
       ctx.beginPath()
       ctx.arc(cx, cy, r, a0, a1)

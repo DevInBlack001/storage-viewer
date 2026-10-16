@@ -10,7 +10,7 @@ import time
 from dataclasses import asdict
 
 from . import __version__
-from .disks import Disk, list_disks
+from .disks import Disk, list_disks, primary_disks
 from .rules import KEEP, REVIEW, SAFE
 from .scanner import ScanResult
 from .util import human_size, safe_text
@@ -20,9 +20,12 @@ MAX_CACHE_BYTES = 2 * 1024 * 1024
 TIER_LABEL = {SAFE: "SAFE", REVIEW: "REVIEW", KEEP: "KEEP"}
 
 
-def disks_payload() -> dict:
+def disks_payload(root: str | None = None) -> dict:
+    """All mounted filesystems, plus `primary`: where / and your home live."""
     disks, notes = list_disks()
-    return {"disks": [d.as_dict() for d in disks], "notes": notes}
+    payload = {"disks": [d.as_dict() for d in disks], "notes": notes}
+    payload["primary"] = [d.as_dict() for d in primary_disks(root or os.path.expanduser("~"))]
+    return payload
 
 
 def scan_payload(result: ScanResult) -> dict:
@@ -43,7 +46,7 @@ def scan_payload(result: ScanResult) -> dict:
 
 def full_payload(result: ScanResult | None) -> dict:
     payload = {"version": __version__, "generated_at": int(time.time())}
-    payload.update(disks_payload())
+    payload.update(disks_payload(result.root if result is not None else None))
     payload["home"] = scan_payload(result) if result is not None else None
     return payload
 

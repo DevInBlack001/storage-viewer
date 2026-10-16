@@ -63,6 +63,7 @@ Item {
         if (!d) return
         var merged = root.payload || {}
         merged.disks = d.disks
+        merged.primary = d.primary
         merged.notes = d.notes
         merged.version = d.version
         root.payload = merged

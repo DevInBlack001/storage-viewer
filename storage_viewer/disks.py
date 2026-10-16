@@ -131,3 +131,42 @@ def list_disks() -> tuple[list[Disk], list[str]]:
             disks.append(fallback)
             notes.append("no block-backed mounts found; showing / only")
     return disks, notes
+
+
+def _mount_for(path: str, candidates: list[Disk]) -> Disk | None:
+    """The deepest mount point that contains `path`."""
+    target = os.path.realpath(path).rstrip(os.sep) + os.sep
+    best: Disk | None = None
+    for disk in candidates:
+        mount = disk.mount.rstrip(os.sep) + os.sep
+        if target.startswith(mount) and (best is None or len(disk.mount) > len(best.mount)):
+            best = disk
+    return best
+
+
+def primary_disks(path: str) -> list[Disk]:
+    """The filesystem holding `/` and the one holding `path` (your home).
+
+    Unlike list_disks() this does not merge mounts that share a device, so a
+    separate /home on the same btrfs pool still appears under its own name.
+    The mount names come from the mount table, never from a fixed string.
+    """
+    try:
+        candidates = []
+        for device, mount, fstype in _read_mounts():
+            if fstype in _PSEUDO_FSTYPES or not device.startswith("/dev/") or device.startswith("/dev/loop"):
+                continue
+            disk = _statvfs_disk(device, mount, fstype)
+            if disk is not None:
+                candidates.append(disk)
+    except OSError:
+        candidates = []
+    if not candidates:
+        fallback = _statvfs_disk("/", "/", "unknown")
+        return [fallback] if fallback else []
+    out: list[Disk] = []
+    for wanted in (os.sep, path):
+        disk = _mount_for(wanted, candidates)
+        if disk is not None and all(disk.mount != seen.mount for seen in out):
+            out.append(disk)
+    return out

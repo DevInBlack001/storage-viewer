@@ -41,27 +41,28 @@ function tierLabel(tier) {
   return "REVIEW"
 }
 
-// "ok" | "warn" | "bad" | "unknown" for the bar icon, from the fullest disk.
+// The two filesystems worth showing: where / lives and where your home lives.
+function primaryDisks(payload) {
+  if (!payload) return []
+  if (payload.primary && payload.primary.length) return payload.primary
+  return payload.disks && payload.disks.length ? [payload.disks[0]] : []
+}
+
+// "ok" | "warn" | "bad" | "unknown" for the bar icon, from the fullest of them.
 function status(payload, warnPercent, criticalPercent) {
-  if (!payload || !payload.disks || payload.disks.length === 0) return "unknown"
+  var list = primaryDisks(payload)
+  if (list.length === 0) return "unknown"
   var worst = 0
-  for (var i = 0; i < payload.disks.length; i++) worst = Math.max(worst, payload.disks[i].percent)
+  for (var i = 0; i < list.length; i++) worst = Math.max(worst, list[i].percent)
   if (worst >= criticalPercent) return "bad"
   if (worst >= warnPercent) return "warn"
   return "ok"
 }
 
-// The disk the home directory lives on: the deepest mount that prefixes root.
+// The filesystem the home directory lives on (the last of the primary pair).
 function homeDisk(payload) {
-  if (!payload || !payload.disks || !payload.disks.length) return null
-  var root = payload.home && payload.home.root ? payload.home.root : ""
-  var best = null
-  for (var i = 0; i < payload.disks.length; i++) {
-    var d = payload.disks[i]
-    var m = d.mount === "/" ? "/" : d.mount + "/"
-    if ((root + "/").indexOf(m) === 0 && (!best || d.mount.length > best.mount.length)) best = d
-  }
-  return best || payload.disks[0]
+  var list = primaryDisks(payload)
+  return list.length ? list[list.length - 1] : null
 }
 
 function agoLabel(scannedAt, nowSeconds) {
