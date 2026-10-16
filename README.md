@@ -15,7 +15,7 @@ Read-only by design: it never deletes anything, makes no network calls, and runs
   - **SAFE**: regenerates on its own (caches, trash, build output)
   - **REVIEW**: probably removable, but only you can judge (downloads, VMs, games)
   - **KEEP**: personal data, settings, keys, or source code
-- Size by last modified: bytes per age bucket, and a gridded size-versus-age plot where each listed item is a point labelled with its rank, so old and big stands out
+- Size by last modified: bytes per age bucket, and a 3D plot (size, date, time of day) where each listed item is a point labelled with its rank and joined to the floor by a stem, so old and big stands out; `v` switches to a flat 2D plot
 - Build output found anywhere under home (`target/`, `node_modules/`, `__pycache__/`, `build/`, `dist/`, virtualenvs) is listed on its own and not double counted
 - Colors come from your terminal's own palette, so it follows your theme (on Omarchy that means the active theme)
 - Runs on any Linux distro: Python 3.9+ standard library only, nothing to `pip install`
@@ -71,7 +71,7 @@ storage-viewer --json --disks-only
 storage-viewer --root ~/Projects --top 20
 ```
 
-TUI keys: `up`/`down` (or `j`/`k`) select, `r` rescans, `q` quits.
+TUI keys: `up`/`down` (or `j`/`k`) select, `v` switches the size plot between 3D (size, date, time of day) and 2D, `r` rescans, `q` quits.
 
 ## How an item is ranked
 

@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.0] - 2026-10-16
+
+### Added
+
+- 3D size, date and time plot in the TUI: an isometric scatter with last-modified date (x), size (y) and time of day (z), a dotted stem from every point to the floor, and the item's rank beside it; press `v` to switch to the flat 2D plot
+
+### Changed
+
+- The date axis starts at one hour (it started at one day), so items modified on the same day spread out instead of piling up on the left, in both views
+
 ## [1.1.0] - 2026-10-16
 
 ### Added

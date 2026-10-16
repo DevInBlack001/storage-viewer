@@ -54,6 +54,7 @@ class State:
         self.scanning = False
         self.progress = (0, 0.0)
         self.selected = 0
+        self.view3d = True
         self.cancel = threading.Event()
         self._lock = threading.Lock()
 
@@ -299,7 +300,24 @@ def draw_age_histogram(win, y: int, x: int, width: int, res: ScanResult, g: Glyp
 
 
 _SIZE_TICKS = [2 ** 20 * 4 ** i for i in range(0, 10)]  # 1M, 4M, 16M, ... 64G, 256G
-_AGE_TICKS = [1, 7, 30, 90, 365, 1825]
+SCATTER_ROWS = 13                            # height of the size/date/time plot block
+_HOUR = 1.0 / 24.0                           # the age axis starts at one hour
+_AGE_TICKS = [_HOUR, 1, 7, 30, 365, 1825]    # days
+
+
+def fmt_age(days: float) -> str:
+    """Axis label: hours below a day, then the usual 3d, 4w, 12mo, 5y."""
+    return f"{max(1, round(days * 24))}h" if days < 1 else fmt_days(days)
+
+
+def _age_axis(ages: list[float]) -> tuple[float, float]:
+    """log10 bounds of the age axis: one hour up to just past the oldest item or one year."""
+    return math.log10(_HOUR), math.log10(max(max(ages), 365.0) * 1.2)
+
+
+def _hour_of_day(ts: float) -> float:
+    lt = time.localtime(ts)
+    return lt.tm_hour + lt.tm_min / 60.0
 
 
 def draw_scatter(win, y: int, x: int, width: int, height: int, items, selected: int,
@@ -316,14 +334,15 @@ def draw_scatter(win, y: int, x: int, width: int, height: int, items, selected: 
     if pw < 20 or ph < 3 or not pts:
         _put(win, y, x, "not enough data for the plot", dim)
         return
-    ages = [max(1.0, (now - it.mtime) / DAY) for _, it in pts]
+    ages = [max(_HOUR, (now - it.mtime) / DAY) for _, it in pts]
     sizes = [math.log10(it.size) for _, it in pts]
-    x_hi = math.log10(max(max(ages), 365.0) * 1.2)
+    x_lo, x_hi = _age_axis(ages)
     y_lo, y_hi = min(sizes) - 0.25, max(sizes) + 0.25
     ox = x + label_w + 1                         # first plot column
 
     def col(days: float) -> int:
-        return ox + 1 + int(min(1.0, math.log10(max(1.0, days)) / x_hi) * (pw - 3))
+        frac = (math.log10(max(_HOUR, days)) - x_lo) / (x_hi - x_lo)
+        return ox + 1 + int(max(0.0, min(1.0, frac)) * (pw - 3))
 
     def row(log_size: float) -> int:
         frac = (log_size - y_lo) / (y_hi - y_lo)
@@ -340,12 +359,12 @@ def draw_scatter(win, y: int, x: int, width: int, height: int, items, selected: 
         _put(win, ry, ox + 1, dot * (pw - 1), dim)
     # vertical gridlines + age labels
     for days in _AGE_TICKS:
-        if math.log10(days) > x_hi:
+        if not (x_lo <= math.log10(days) <= x_hi):
             continue
         cx = col(days)
         for r in range(ph):
             _put(win, y + r, cx, g.vline if g.utf else "|", dim)
-        _put(win, y + ph + 1, max(ox, cx - 1), fmt_days(days), dim)
+        _put(win, y + ph + 1, max(ox, cx - 1), fmt_age(days), dim)
     # axes
     for r in range(ph):
         _put(win, y + r, ox, g.vline, dim)
@@ -363,6 +382,98 @@ def draw_scatter(win, y: int, x: int, width: int, height: int, items, selected: 
             attr |= curses.A_REVERSE
         _put(win, cy, cx, ("●" if g.utf else "o"), attr)
         _put(win, cy, cx + 1, str(idx + 1), (curses.A_BOLD | (curses.A_REVERSE if sel else 0)))
+
+
+def draw_scatter3d(win, y: int, x: int, width: int, height: int, items, selected: int,
+                   now: float, g: Glyphs) -> None:
+    """Isometric 3D scatter: x = last modified (date, log), y = size (log),
+    z = time of day (depth, into the screen).
+
+    Each item is a colored point followed by its rank, joined to the floor by a
+    dotted stem so its position can be read off the axes. Points modified on the
+    same day separate by their time of day.
+    """
+    pts = [(i, it) for i, it in enumerate(items) if it.mtime > 0 and it.size > 0]
+    dim = _cp(P_DIM)
+    label_w = 6
+    dx = max(6, min(14, width // 5))          # depth shift, in columns
+    dy = max(2, min(4, height // 3))          # depth shift, in rows
+    aw = width - label_w - 1 - dx - 6         # front edge width (z labels sit to its right)
+    ah = height - dy - 2                      # vertical axis height
+    if aw < 16 or ah < 3 or not pts:
+        _put(win, y, x, "not enough data for the plot", dim)
+        return
+    ox = x + label_w + 1                      # front-left corner column
+    base = y + height - 2                     # front edge row; tick labels sit below it
+    ages = [max(_HOUR, (now - it.mtime) / DAY) for _, it in pts]
+    sizes = [math.log10(it.size) for _, it in pts]
+    x_lo, x_hi = _age_axis(ages)
+    y_lo, y_hi = min(sizes) - 0.25, max(sizes) + 0.25
+
+    def clamp(v: float) -> float:
+        return max(0.0, min(1.0, v))
+
+    def u_of(days: float) -> float:
+        return clamp((math.log10(max(_HOUR, days)) - x_lo) / (x_hi - x_lo))
+
+    def v_of(log_size: float) -> float:
+        return clamp((log_size - y_lo) / (y_hi - y_lo))
+
+    def col(u: float, d: float) -> int:
+        return ox + int(round(u * (aw - 1) + d * dx))
+
+    def row(v: float, d: float) -> int:
+        return base - int(round(v * (ah - 1) + d * dy))
+
+    dot = "·" if g.utf else "."
+    hline = g.hline
+    # floor: front and back edges, the two side edges, dotted lines at the age ticks
+    _put(win, base, ox, hline * aw, dim)
+    _put(win, base - dy, ox + dx, hline * aw, dim)
+    for t in range(dy + 1):
+        shift = int(round(t * dx / dy))
+        _put(win, base - t, ox + shift, "/", dim)
+        _put(win, base - t, ox + aw - 1 + shift, "/", dim)
+    for days in _AGE_TICKS:
+        if not (x_lo <= math.log10(days) <= x_hi):
+            continue
+        u = u_of(days)
+        for t in range(1, dy):
+            _put(win, base - t, col(u, t / dy), dot, dim)
+        _put(win, base + 1, max(ox, col(u, 0) - 1), fmt_age(days), dim)
+    # vertical size axis on the front-left edge
+    for r in range(1, ah + 1):
+        _put(win, base - r, ox, g.vline, dim)
+    for tick in _SIZE_TICKS:
+        lg = math.log10(tick)
+        if y_lo <= lg <= y_hi:
+            ry = row(v_of(lg), 0)
+            _put(win, ry, x, f"{human_size(tick):>{label_w - 1}}", dim)
+            _put(win, ry, ox, "┼" if g.utf else "+", dim)
+    # time-of-day labels along the right side edge
+    for frac in (0.0, 0.5, 1.0):
+        _put(win, base - int(round(frac * dy)), ox + aw + int(round(frac * dx)) + 1,
+             f"{int(frac * 24):02d}h", dim)
+    _put(win, y - 1, x, "y: size", dim | curses.A_BOLD)
+    _put(win, y - 1, x + 10, "x: last modified", dim | curses.A_BOLD)
+    _put(win, y - 1, x + width - 17, "z: time of day", dim | curses.A_BOLD)
+
+    placed = []
+    for (idx, item), age, lg in zip(pts, ages, sizes):
+        u, v, d = u_of(age), v_of(lg), _hour_of_day(item.mtime) / 24.0
+        placed.append((idx, item, col(u, d), row(v, d), row(0.0, d), d))
+    stem = "┆" if g.utf else ":"
+    for _, _, px, py, floor, _ in placed:             # stems first, under the points
+        for r in range(py + 1, floor):
+            _put(win, r, px, stem, dim)
+        if floor > py:
+            _put(win, floor, px, "◦" if g.utf else ".", dim)
+    # far points first so near ones sit on top; the selected point on top of all
+    for idx, item, px, py, _, d in sorted(placed, key=lambda t: (t[0] == selected, -t[5])):
+        sel = idx == selected
+        attr = _cp(P_TIER[item.tier]) | curses.A_BOLD | (curses.A_REVERSE if sel else 0)
+        _put(win, py, px, "●" if g.utf else "o", attr)
+        _put(win, py, px + 1, str(idx + 1), curses.A_BOLD | (curses.A_REVERSE if sel else 0))
 
 
 # ------------------------------------------------------------------- draw
@@ -495,15 +606,17 @@ def draw(win, st: State, g: Glyphs, tick: int) -> None:
     if show_age and res is not None and res.age_bytes:
         _put(win, y, margin, "SIZE BY LAST MODIFIED", head)
         if show_scatter:
-            _put(win, y, w // 2, "BIGGEST ITEMS: SIZE vs AGE", head)
-            _put(win, y, w // 2 + 28, "(numbers match the list below)", _cp(P_DIM))
+            title = "BIGGEST ITEMS: SIZE, DATE, TIME" if st.view3d else "BIGGEST ITEMS: SIZE vs DATE"
+            _put(win, y, w // 2, title, head)
+            _put(win, y, w // 2 + len(title) + 2, "(numbers match the list)", _cp(P_DIM))
         y += 2
         hist_w = (w // 2 - margin - 3) if show_scatter else inner_w
         used = draw_age_histogram(win, y, margin, hist_w, res, g)
         if show_scatter:
-            draw_scatter(win, y, w // 2, w - w // 2 - margin, max(used + 3, 8), res.items, st.selected,
-                         time.time(), g)
-        y += max(used, 8 if show_scatter else 0) + 1
+            plot = draw_scatter3d if st.view3d else draw_scatter
+            plot(win, y, w // 2, w - w // 2 - margin, SCATTER_ROWS, res.items, st.selected,
+                 time.time(), g)
+        y += max(used, SCATTER_ROWS if show_scatter else 0) + 1
 
     # ---- ranked list -----------------------------------------------------
     _put(win, y, margin, "TOP ITEMS", head)
@@ -551,7 +664,7 @@ def draw(win, st: State, g: Glyphs, tick: int) -> None:
         if item.blocked:
             detail += "  (some contents unreadable)"
         _put(win, h - 2, margin, _clip_end(detail, inner_w), curses.A_BOLD)
-    _put(win, h - 1, margin, "up/down select   r rescan   q quit", dim)
+    _put(win, h - 1, margin, "up/down select   r rescan   v 2d/3d   q quit", dim)
     win.refresh()
 
 
@@ -612,6 +725,8 @@ def _loop(stdscr, st: State) -> None:
             st.selected = min(n - 1, st.selected + 1)
         elif key in (curses.KEY_UP, ord("k")) and n:
             st.selected = max(0, st.selected - 1)
+        elif key in (ord("v"), ord("V")):
+            st.view3d = not st.view3d
         elif key in (curses.KEY_HOME, ord("g")):
             st.selected = 0
         elif key in (curses.KEY_END, ord("G")) and n:

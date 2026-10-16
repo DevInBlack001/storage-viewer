@@ -135,6 +135,20 @@ class DonutTests(unittest.TestCase):
         centre = cells[4][10]
         self.assertEqual(centre[1], -1)
 
+    def test_fmt_age_uses_hours_below_a_day(self):
+        self.assertEqual(tui.fmt_age(1 / 24), "1h")
+        self.assertEqual(tui.fmt_age(0.5), "12h")
+        self.assertEqual(tui.fmt_age(3), "3d")
+
+    def test_age_axis_starts_at_one_hour_and_covers_the_oldest(self):
+        lo, hi = tui._age_axis([0.1, 2000.0])
+        self.assertAlmostEqual(lo, -1.38, places=2)
+        self.assertGreater(hi, 3.3)
+        self.assertLess(tui._age_axis([1.0])[1] - tui._age_axis([1.0])[0], 4)
+
+    def test_hour_of_day_is_within_a_day(self):
+        self.assertTrue(0.0 <= tui._hour_of_day(1_700_000_000) < 24.0)
+
     def test_fmt_days(self):
         self.assertEqual(tui.fmt_days(3), "3d")
         self.assertEqual(tui.fmt_days(30), "4w")
