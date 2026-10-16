@@ -92,7 +92,7 @@ record dir "$APP_DIR"
 while IFS= read -r -d '' f; do
   rel="${f#"$SRC_DIR"/}"
   copy_file "$f" "$APP_DIR/$rel"
-done < <(find "$SRC_DIR/storage_viewer" -type f -name '*.py' -print0)
+done < <(find "$SRC_DIR/storage_viewer" -type f \( -name '*.py' -o -name '*.json' \) -print0)
 copy_file "$SRC_DIR/bin/$APP_NAME" "$APP_DIR/bin/$APP_NAME" 755
 make_link "$APP_DIR/bin/$APP_NAME" "$BIN_DIR/$APP_NAME"
 

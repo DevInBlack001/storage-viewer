@@ -42,6 +42,9 @@ if [ "$PULL" = 1 ]; then
   if [ "$before" = "$after" ]; then say "Already up to date ($after)"; else say "Updated $before -> $after"; fi
 fi
 
+# version.json is the source of truth; make sure every copy of it agrees.
+run "$SRC_DIR/scripts/sync-version.sh" >/dev/null
+
 if [ "${#PASS[@]}" -eq 0 ]; then
   # Replay the recorded options from whichever layout is installed.
   for mode in user system; do

@@ -509,7 +509,7 @@ def draw(win, st: State, g: Glyphs, tick: int) -> None:
     _put(win, y, margin, "TOP ITEMS", head)
     _put(win, y, margin + 11, "most removable first", dim)
     y += 2
-    footer = 4
+    footer = 3
     if res is not None:
         items = res.items
         avail = max(1, h - y - footer)
@@ -547,12 +547,11 @@ def draw(win, st: State, g: Glyphs, tick: int) -> None:
     # ---- detail + keys ---------------------------------------------------
     if res is not None and res.items and 0 <= st.selected < len(res.items):
         item = res.items[st.selected]
-        detail = f"{item.path}  -  {item.reason}"
+        detail = item.path
         if item.blocked:
             detail += "  (some contents unreadable)"
-        _put(win, h - 3, margin, _clip_end(detail, inner_w), curses.A_BOLD)
-    _put(win, h - 2, margin, "age = newest file inside   SAFE regenerates   REVIEW only you can judge   KEEP personal data or code", dim)
-    _put(win, h - 1, margin, "up/down select   r rescan   q quit      read-only: nothing is ever deleted", dim)
+        _put(win, h - 2, margin, _clip_end(detail, inner_w), curses.A_BOLD)
+    _put(win, h - 1, margin, "up/down select   r rescan   q quit", dim)
     win.refresh()
 
 

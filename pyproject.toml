@@ -27,3 +27,6 @@ storage-viewer = "storage_viewer.cli:main"
 
 [tool.setuptools]
 packages = ["storage_viewer"]
+
+[tool.setuptools.package-data]
+storage_viewer = ["defaults.json"]

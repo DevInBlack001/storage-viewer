@@ -2,14 +2,16 @@
 
 A terminal UI that shows how full your disks are, draws where the space went, and lists the 10 biggest items in your home directory **ordered by how safe they are to delete**. It also ships as a bar plugin for [Omarchy](https://omarchy.org/) and as a standalone [Quickshell](https://quickshell.org/) panel.
 
-<p align="center"><img src="assets/preview.png" alt="Compact panel: free space ring, bars for / and /home, five easy wins" width="300"></p>
+<p align="center"><img src="assets/tui.png" alt="Terminal UI: donut charts, size by last modified, size versus age plot, ranked list" width="860"></p>
+
+<p align="center"><img src="assets/preview.png" alt="Compact panel: free space ring, one bar for the home disk, five space hogs" width="300"></p>
 
 Read-only by design: it never deletes anything, makes no network calls, and runs no subprocesses.
 
 ## Features
 
 - Donut charts for the main disk (home / other / free) and for what fills your home directory, plus a usage bar for every mounted filesystem
-- Top 10 largest items, most removable first, each tagged and explained
+- Top 10 largest items, most removable first, each with a short tag
   - **SAFE**: regenerates on its own (caches, trash, build output)
   - **REVIEW**: probably removable, but only you can judge (downloads, VMs, games)
   - **KEEP**: personal data, settings, keys, or source code
@@ -17,7 +19,7 @@ Read-only by design: it never deletes anything, makes no network calls, and runs
 - Build output found anywhere under home (`target/`, `node_modules/`, `__pycache__/`, `build/`, `dist/`, virtualenvs) is listed on its own and not double counted
 - Colors come from your terminal's own palette, so it follows your theme (on Omarchy that means the active theme)
 - Runs on any Linux distro: Python 3.9+ standard library only, nothing to `pip install`
-- Optional Omarchy bar plugin and standalone Quickshell panel. The panel is a small card: free space on your home mount, bars for `/` and your home mount, and the top 5 easy wins. The TUI has the full detail.
+- Optional Omarchy bar plugin and standalone Quickshell panel. The panel is a small card: free space on your home mount, one bar for the disk, and the 5 biggest "space hogs". The TUI has the full detail.
 
 ## Install
 
@@ -71,52 +73,9 @@ storage-viewer --root ~/Projects --top 20
 
 TUI keys: `up`/`down` (or `j`/`k`) select, `r` rescans, `q` quits.
 
-```text
- Storage Viewer   /home/user
-
-  DISK                                                           HOME
-
-       ⣀⣤⣶⣶⣶⣶⣶⣶⣤⣀        /  btrfs                                     ⣀⣤⣶⣶⣶⣶⣶⣶⣤⣀        ● Downloads                  8.4G  28%
-     ⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄                                                 ⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄      ● VirtualBox VMs             5.9G  19%
-    ⣼⣿⣿⣿⠟⠉    ⠉⠻⣿⣿⣿⣧     ● Home                     30G  13%       ⣼⣿⣿⣿⠟⠉    ⠉⠻⣿⣿⣿⣧     ● .local                     4.8G  16%
-   ⢸⣿⣿⣿⠃  56%   ⠘⣿⣿⣿⡇    ● Other used              102G  43%      ⢸⣿⣿⣿⠃  30G   ⠘⣿⣿⣿⡇    ● projects                   4.5G  15%
-   ⢸⣿⣿⣿   used   ⣿⣿⣿⡇    ● Free                    102G  43%      ⢸⣿⣿⣿ in home  ⣿⣿⣿⡇    ● .cache                     4.0G  13%
-   ⢸⣿⣿⣿⡄        ⢠⣿⣿⣿⡇      of 236G                                ⢸⣿⣿⣿⡄        ⢠⣿⣿⣿⡇    ● Videos                     1.5G   5%
-    ⢻⣿⣿⣿⣦⣀    ⣀⣴⣿⣿⣿⡟                                               ⢻⣿⣿⣿⣦⣀    ⣀⣴⣿⣿⣿⡟     ● Pictures                   1.2G   4%
-     ⠙⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋      /boot  12% of 2.0G                         ⠙⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋      ● (everything else)           80M   0%
-       ⠉⠛⠿⠿⠿⠿⠿⠿⠛⠉                                                     ⠉⠛⠿⠿⠿⠿⠿⠿⠛⠉
-
-  SIZE BY LAST MODIFIED                                          ITEMS: SIZE vs AGE  (numbers match the list)
-
-        < 7d  ━━━━━━━━━━━━━━━━━─────────────────   4.5G  15%      8.3G │
-     7d - 4w  ━━━━━━━━━━━━━━━━━━━───────────────   5.1G  17%           │                                     5         6
-    4w - 3mo  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━─   8.8G  29%           │               1     7
-  3mo - 12mo  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   9.2G  30%           │                                 2           9       8
-      > 12mo  ━━━━━━━━━━────────────────────────   2.7G   9%      779M │          3         4                              10
-                                                                       └────────────────────────────────────────────────────────
-                                                                         1d                           4w                    12mo
-
-  TOP ITEMS  most removable first
-
-   1  [ SAFE ]    3.3G  ━━━━━───    5d   ~/projects/rust-tool/target               Rust/Java build output, rebuilt by cargo/maven
-   2  [ SAFE ]    2.3G  ━━━─────    5w   ~/.cache/yay                              AUR helper build cache, rebuilt on demand
-   3  [ SAFE ]    1.2G  ━━──────    3d   ~/projects/webapp/node_modules            JavaScript dependencies, restored by npm/pnpm…
-   4  [ SAFE ]    1.1G  ━───────    9d   ~/.cache/mozilla                          Application cache, rebuilt on demand
-   5  [REVIEW]    5.9G  ━━━━━━━━   2mo   ~/VirtualBox VMs/dev-box                  Virtual machine, delete only if you no longer…
-   6  [REVIEW]    5.7G  ━━━━━━━━   7mo   ~/Downloads/ubuntu-24.04.iso              Downloaded file, check it before deleting
-   7  [REVIEW]    3.9G  ━━━━━───   10d   ~/.local/share/Steam                      Steam games and runtimes (uninstall unused ga…
-   8  [REVIEW]    2.1G  ━━━─────  13mo   ~/Downloads/dataset.zip                   Downloaded file, check it before deleting
-   9  [REVIEW]    1.5G  ━━──────   5mo   ~/Videos                                  Personal videos
-  10  [REVIEW]    1.2G  ━━──────  10mo   ~/Pictures                                Personal pictures
-
-  /home/user/projects/rust-tool/target  -  Rust/Java build output, rebuilt by cargo/maven
-  age = newest file inside   SAFE regenerates   REVIEW only you can judge   KEEP personal data or code
-  up/down select   r rescan   q quit      read-only: nothing is ever deleted
-```
-
 ## How an item is ranked
 
-Rules match a path relative to your home directory, one glob per segment, and cover everything beneath it. First match wins; user rules come before the built-in ones. An item nothing matches is **REVIEW**, never SAFE.
+Rules match a path relative to your home directory, one glob per segment, and cover everything beneath it. First match wins; user rules come before the built-in ones. An item nothing matches is **REVIEW**, never SAFE. The built-in rules and their one-line reasons live in [`storage_viewer/defaults.json`](storage_viewer/defaults.json).
 
 Locations are not hardcoded: rules use `$XDG_CACHE_HOME`, `$XDG_DATA_HOME`, `$XDG_CONFIG_HOME` and the user folders (`$XDG_DOWNLOAD_DIR`, `$XDG_VIDEOS_DIR`, ...), resolved from your environment and `user-dirs.dirs`. A relocated cache or a localized `Téléchargements` folder is matched correctly.
 
@@ -153,8 +112,10 @@ A broken config never stops the tool: it prints a warning and uses the defaults.
 ```bash
 python3 -m unittest discover -s tests
 omarchy plugin validate .      # on Omarchy
-shellcheck -x install.sh update.sh uninstall.sh scripts/common.sh
+shellcheck -x install.sh update.sh uninstall.sh scripts/*.sh
 ```
+
+`version.json` is the single source of truth for the version. To bump it, edit `version.json` and run `./scripts/sync-version.sh`, which copies the number into `manifest.json`, `pyproject.toml` and `storage_viewer/__init__.py` (`update.sh` runs it too). A test fails if they drift. Add the matching `CHANGELOG.md` entry.
 
 Layout: `storage_viewer/` (scanner, rules, disks, report, TUI, CLI), `Content.qml` / `Donut.qml` / `Backend.qml` / `Model.js` (shared panel UI), `Panel.qml` + `manifest.json` (Omarchy plugin), `quickshell/storage-viewer/shell.qml` (standalone panel).
 

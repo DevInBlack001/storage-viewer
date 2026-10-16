@@ -11,8 +11,25 @@ class RuleTokenTests(unittest.TestCase):
     def test_all_default_rules_compile_with_default_xdg_layout(self):
         with tempfile.TemporaryDirectory() as home:
             rs = RuleSet(home, environ={})
-            self.assertEqual(len(rs.rules), len(rules.DEFAULT_RULES))
+            self.assertEqual(len(rs.rules), len(rules.load_defaults()["rules"]))
             self.assertEqual(rs.warnings, [])
+
+    def test_go_and_personal_folders(self):
+        with tempfile.TemporaryDirectory() as home:
+            rs = RuleSet(home, environ={})
+            self.assertEqual(rs.classify((".cache", "go-build"))[:2], (rules.SAFE, "Go build cache"))
+            self.assertEqual(rs.classify(("go", "pkg", "mod"))[:2], (rules.SAFE, "Go module cache"))
+            self.assertEqual(rs.classify(("gosrc",), is_git_repo=True)[:2], (rules.KEEP, rs.git_reason))
+            self.assertEqual(rs.classify(("Documents", "cv.pdf"))[0], rules.KEEP)
+            self.assertEqual(rs.classify(("random-folder",))[:2], (rules.REVIEW, rs.default_reason))
+
+    def test_defaults_file_is_valid(self):
+        data = rules.load_defaults()
+        for entry in data["rules"]:
+            self.assertIn(entry["tier"], rules.TIERS)
+            self.assertTrue(entry["reason"])
+        for spec in data["artifacts"].values():
+            self.assertIn(spec["tier"], rules.TIERS)
 
     def test_relocated_cache_dir_is_honoured(self):
         with tempfile.TemporaryDirectory() as home:
@@ -52,7 +69,8 @@ class RuleTokenTests(unittest.TestCase):
 
     def test_unmatched_is_review_never_safe(self):
         with tempfile.TemporaryDirectory() as home:
-            self.assertEqual(RuleSet(home, environ={}).classify(("mystery",)), (rules.REVIEW, rules.DEFAULT_REASON, False))
+            rs = RuleSet(home, environ={})
+            self.assertEqual(rs.classify(("mystery",)), (rules.REVIEW, rs.default_reason, False))
 
     def test_artifact_needs_marker(self):
         with tempfile.TemporaryDirectory() as home:

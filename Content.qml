@@ -42,7 +42,8 @@ Column {
   }
 
   readonly property var home: payload ? payload.home : null
-  readonly property var primary: Model.primaryDisks(payload)
+  readonly property var rows: Model.diskRows(payload)
+  readonly property var topItems: Model.topBySize(payload, itemCount)
   readonly property var homeDisk: Model.homeDisk(payload)
 
   spacing: 14 * unit
@@ -109,13 +110,14 @@ Column {
       anchors.verticalCenter: parent.verticalCenter
       spacing: 2 * root.unit
       Label {
-        text: root.homeDisk ? Model.humanSize(root.homeDisk.free) : (root.failed ? "!" : "...")
-        font.pixelSize: 24 * root.unit
+        text: root.homeDisk ? Model.humanSize(root.homeDisk.free) + " free" : (root.failed ? "no data" : "...")
+        font.pixelSize: 22 * root.unit
         font.bold: true
         color: root.homeDisk ? root.usageColor(root.homeDisk.percent) : root.dim
       }
       Label {
-        text: root.homeDisk ? "free on " + root.homeDisk.mount : (root.failed ? "can't read disks" : "reading disks")
+        visible: !!root.homeDisk
+        text: root.homeDisk ? "of " + Model.humanSize(root.homeDisk.total) : ""
         color: root.dim
         font.pixelSize: 11 * root.unit
       }
@@ -126,10 +128,10 @@ Column {
   Column {
     width: parent.width
     spacing: 9 * root.unit
-    visible: root.primary.length > 0
+    visible: root.rows.length > 0
 
     Repeater {
-      model: root.primary
+      model: root.rows
       Column {
         required property var modelData
         width: root.width
@@ -137,7 +139,7 @@ Column {
         Item {
           width: parent.width
           height: mountLabel.implicitHeight
-          Label { id: mountLabel; text: modelData.mount; font.bold: true; font.pixelSize: 11 * root.unit }
+          Label { id: mountLabel; text: modelData.label; font.bold: true; font.pixelSize: 11 * root.unit }
           Label {
             anchors.right: parent.right
             text: Model.humanSize(modelData.used) + " / " + Model.humanSize(modelData.total)
@@ -150,15 +152,15 @@ Column {
     }
   }
 
-  // ---- easy wins: the first few of the ranked list ----------------------
+  // ---- top storage users: the biggest items in home ---------------------
   Column {
     width: parent.width
     spacing: 7 * root.unit
-    visible: !!root.home && root.home.items.length > 0
+    visible: root.topItems.length > 0
 
-    Label { text: "easy wins"; color: root.dim; font.pixelSize: 10.5 * root.unit; font.letterSpacing: 0.8 }
+    Label { text: "space hogs"; color: root.dim; font.pixelSize: 10.5 * root.unit; font.letterSpacing: 0.8 }
     Repeater {
-      model: root.home ? root.home.items.slice(0, root.itemCount) : []
+      model: root.topItems
       Item {
         required property var modelData
         width: root.width

@@ -48,6 +48,30 @@ function primaryDisks(payload) {
   return payload.disks && payload.disks.length ? [payload.disks[0]] : []
 }
 
+// Rows for the disk bars. Mounts that share one disk (btrfs subvolumes, bind
+// mounts) report identical space, so they collapse into one row named after
+// the later mount, which is the home mount.
+function diskRows(payload) {
+  var list = primaryDisks(payload)
+  var rows = []
+  for (var i = 0; i < list.length; i++) {
+    var d = list[i]
+    var twin = null
+    for (var j = 0; j < rows.length; j++) {
+      if (rows[j].device === d.device && rows[j].total === d.total && rows[j].used === d.used) twin = rows[j]
+    }
+    if (twin) twin.label = d.mount
+    else rows.push({ label: d.mount, device: d.device, total: d.total, used: d.used, percent: d.percent })
+  }
+  return rows
+}
+
+// Biggest items first, regardless of how removable they are.
+function topBySize(payload, count) {
+  if (!payload || !payload.home || !payload.home.items) return []
+  return payload.home.items.slice().sort(function(a, b) { return b.size - a.size }).slice(0, count)
+}
+
 // "ok" | "warn" | "bad" | "unknown" for the bar icon, from the fullest of them.
 function status(payload, warnPercent, criticalPercent) {
   var list = primaryDisks(payload)

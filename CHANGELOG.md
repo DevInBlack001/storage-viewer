@@ -6,9 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [1.1.0] - 2026-10-16
 
+### Added
+
+- `version.json` is now the single source of truth for the version; `scripts/sync-version.sh` (also run by `update.sh`) propagates it to `manifest.json`, `pyproject.toml` and `storage_viewer/__init__.py`, and a test fails if they drift
+
 ### Changed
 
-- Shell panels (Omarchy and Quickshell) are now a small card: a ring and the free space on the home mount, bars for `/` and the home mount, and the top 5 easy wins
+- Reasons in the item list are one or two words ("Cache", "Git repo", "Unclassified")
+- Shell panels (Omarchy and Quickshell) are now a small card: a ring and the free space on the home mount, one bar per disk (when `/` and `/home` share a disk, one `/home` row), and the 5 biggest items as "space hogs"
+- Built-in rules and their reasons moved into `storage_viewer/defaults.json` and the reason texts are shorter; Go caches are recognised
+- The TUI drops the legend and "read-only" footer lines
 - The JSON report has a `primary` list (the filesystems holding `/` and your home), resolved from the mount table
 - The TUI size-versus-age plot has dotted gridlines, labelled ticks on both axes, and a colored point with its rank for every item
 

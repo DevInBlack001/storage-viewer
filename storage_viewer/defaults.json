@@ -1,0 +1,86 @@
+{
+  "git_reason": "Git repo",
+  "default_reason": "Unclassified",
+  "rules": [
+    {"path": "$XDG_DATA_HOME/Trash", "tier": "safe", "reason": "Trash"},
+    {"path": "$XDG_CACHE_HOME/yay", "tier": "safe", "reason": "AUR build cache"},
+    {"path": "$XDG_CACHE_HOME/paru", "tier": "safe", "reason": "AUR build cache"},
+    {"path": "$XDG_CACHE_HOME/debuginfod_client", "tier": "safe", "reason": "Debug symbol cache"},
+    {"path": "$XDG_CACHE_HOME/thumbnails", "tier": "safe", "reason": "Thumbnail cache"},
+    {"path": "$XDG_CACHE_HOME/pip", "tier": "safe", "reason": "pip cache"},
+    {"path": "$XDG_CACHE_HOME/go-build", "tier": "safe", "reason": "Go build cache"},
+    {"path": "$XDG_CACHE_HOME/*", "tier": "safe", "reason": "Cache"},
+    {"path": ".npm", "tier": "safe", "reason": "npm cache"},
+    {"path": ".gradle/caches", "tier": "safe", "reason": "Gradle cache"},
+    {"path": ".cargo/registry", "tier": "safe", "reason": "Cargo crate cache"},
+    {"path": ".cargo/git", "tier": "safe", "reason": "Cargo git cache"},
+    {"path": "go/pkg/mod", "tier": "safe", "reason": "Go module cache"},
+    {"path": ".var/app/*/cache", "tier": "safe", "reason": "Flatpak cache"},
+    {"path": "$XDG_CONFIG_HOME/*/*[Cc]ache*", "tier": "safe", "reason": "App cache"},
+    {"path": "$XDG_CONFIG_HOME/*/logs", "tier": "safe", "reason": "App logs"},
+
+    {"path": ".ssh", "tier": "keep", "reason": "SSH keys"},
+    {"path": ".gnupg", "tier": "keep", "reason": "GPG keys"},
+    {"path": "$XDG_DATA_HOME/keyrings", "tier": "keep", "reason": "Saved passwords"},
+    {"path": ".password-store", "tier": "keep", "reason": "Password store"},
+    {"path": "$XDG_DOCUMENTS_DIR", "tier": "keep", "reason": "Documents"},
+    {"path": "$XDG_CONFIG_HOME/*", "tier": "keep", "reason": "App settings"},
+
+    {"path": "$XDG_DATA_HOME/Steam", "tier": "review", "reason": "Steam games"},
+    {"path": "$XDG_DATA_HOME/mise", "tier": "review", "reason": "mise toolchains"},
+    {"path": "$XDG_DATA_HOME/flatpak", "tier": "review", "reason": "Flatpak apps"},
+    {"path": "$XDG_DATA_HOME/containers", "tier": "review", "reason": "Podman data"},
+    {"path": "$XDG_DATA_HOME/docker", "tier": "review", "reason": "Docker data"},
+    {"path": "$XDG_DATA_HOME/libvirt/images", "tier": "review", "reason": "VM disks"},
+    {"path": ".steam", "tier": "review", "reason": "Steam client"},
+    {"path": ".minecraft", "tier": "review", "reason": "Minecraft data"},
+    {"path": ".vscode", "tier": "review", "reason": "Editor extensions"},
+    {"path": ".vscode-server", "tier": "review", "reason": "Remote editor"},
+    {"path": ".docker", "tier": "review", "reason": "Docker client"},
+    {"path": "snap", "tier": "review", "reason": "Snap data"},
+    {"path": "$XDG_DOWNLOAD_DIR/*", "tier": "review", "reason": "Download"},
+    {"path": "vmware/*", "tier": "review", "reason": "Virtual machine"},
+    {"path": "VirtualBox VMs/*", "tier": "review", "reason": "Virtual machine"},
+    {"path": ".vmware", "tier": "review", "reason": "VMware data"},
+    {"path": "$XDG_VIDEOS_DIR", "tier": "review", "reason": "Videos"},
+    {"path": "$XDG_MUSIC_DIR", "tier": "review", "reason": "Music"},
+    {"path": "$XDG_PICTURES_DIR", "tier": "review", "reason": "Pictures"}
+  ],
+  "expand": [
+    "$XDG_CACHE_HOME",
+    ".local",
+    "$XDG_DATA_HOME",
+    "$XDG_CONFIG_HOME",
+    "$XDG_CONFIG_HOME/*",
+    ".var",
+    ".var/app",
+    ".var/app/*",
+    "$XDG_DOWNLOAD_DIR",
+    "vmware",
+    "VirtualBox VMs"
+  ],
+  "artifacts": {
+    "node_modules": {"tier": "safe", "reason": "npm dependencies"},
+    "__pycache__": {"tier": "safe", "reason": "Python bytecode"},
+    ".pytest_cache": {"tier": "safe", "reason": "pytest cache"},
+    ".mypy_cache": {"tier": "safe", "reason": "mypy cache"},
+    ".tox": {"tier": "safe", "reason": "tox environments"},
+    "target": {
+      "tier": "safe",
+      "reason": "Build output",
+      "markers": ["Cargo.toml", "pom.xml", "build.gradle", "build.gradle.kts"]
+    },
+    "build": {
+      "tier": "safe",
+      "reason": "Build output",
+      "markers": ["CMakeLists.txt", "package.json", "setup.py", "pyproject.toml", "build.gradle", "Makefile"]
+    },
+    "dist": {
+      "tier": "safe",
+      "reason": "Build output",
+      "markers": ["package.json", "setup.py", "pyproject.toml"]
+    },
+    ".venv": {"tier": "review", "reason": "Python virtualenv"},
+    "venv": {"tier": "review", "reason": "Python virtualenv", "markers": ["pyvenv.cfg"]}
+  }
+}
