@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - `version.json` is now the single source of truth for the version; `scripts/sync-version.sh` (also run by `update.sh`) propagates it to `manifest.json`, `pyproject.toml` and `storage_viewer/__init__.py`, and a test fails if they drift
+- `scripts/release.sh` tags `v<version.json>` and publishes the GitHub release from the matching changelog section, after checking that the version files, changelog, tree and tag all agree
 
 ### Changed
 

@@ -115,7 +115,7 @@ omarchy plugin validate .      # on Omarchy
 shellcheck -x install.sh update.sh uninstall.sh scripts/*.sh
 ```
 
-`version.json` is the single source of truth for the version. To bump it, edit `version.json` and run `./scripts/sync-version.sh`, which copies the number into `manifest.json`, `pyproject.toml` and `storage_viewer/__init__.py` (`update.sh` runs it too). A test fails if they drift. Add the matching `CHANGELOG.md` entry.
+`version.json` is the single source of truth for the version. To bump it, edit `version.json` and run `./scripts/sync-version.sh`, which copies the number into `manifest.json`, `pyproject.toml` and `storage_viewer/__init__.py` (`update.sh` runs it too). A test fails if they drift. Add the matching `CHANGELOG.md` entry, commit and push, then run `./scripts/release.sh`: it tags `v<version.json>` and publishes a GitHub release with that changelog section as the notes, and refuses to run if anything disagrees.
 
 Layout: `storage_viewer/` (scanner, rules, disks, report, TUI, CLI), `Content.qml` / `Donut.qml` / `Backend.qml` / `Model.js` (shared panel UI), `Panel.qml` + `manifest.json` (Omarchy plugin), `quickshell/storage-viewer/shell.qml` (standalone panel).
 
